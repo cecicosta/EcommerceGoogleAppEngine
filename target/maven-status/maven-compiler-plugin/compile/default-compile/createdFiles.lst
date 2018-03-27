@@ -1,0 +1,7 @@
+com\cloud\smartvendas\aws\helpers\AmazonSESServiceHelper.class
+com\cloud\smartvendas\controllers\SamplePageController.class
+com\cloud\smartvendas\aws\helpers\AmazonDinamoDBHelper.class
+com\cloud\smartvendas\config\WebAppInitializer.class
+com\cloud\smartvendas\config\SpringConfigMvc.class
+com\cloud\smartvendas\aws\helpers\AmazonRDBServiceHelper.class
+com\cloud\smartvendas\aws\helpers\AmazonS3ServiceHelper.class

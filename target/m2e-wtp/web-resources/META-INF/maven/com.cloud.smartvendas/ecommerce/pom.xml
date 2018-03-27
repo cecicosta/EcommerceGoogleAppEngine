@@ -18,13 +18,13 @@
 	<finalName>ecommerce</finalName>
 	<plugins>
 		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<version>3.1</version>
-			<configuration>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-war-plugin</artifactId>
+		    <configuration>
+		        <failOnMissingWebXml>false</failOnMissingWebXml>
 				<source>1.8</source>
 				<target>1.8</target>
-			</configuration>
+		    </configuration>
 		</plugin>
 	</plugins>
   </build>
@@ -43,7 +43,7 @@
 	    <artifactId>jackson-mapper-asl</artifactId>
 	    <version>1.9.13</version>
 	</dependency>
-    
+	
     <!-- AWS DEPENDENCIES -->
     
     <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-rds -->
@@ -81,12 +81,6 @@
         <version>4.3.14.RELEASE</version>
     </dependency>
 
-	<dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-orm</artifactId>
-        <version>4.3.14.RELEASE</version>
-    </dependency>
-
 	<!-- https://mvnrepository.com/artifact/org.springframework/spring-web -->
 	<dependency>
 	    <groupId>org.springframework</groupId>
@@ -99,18 +93,7 @@
 	    <artifactId>spring-webmvc</artifactId>
 	    <version>4.3.14.RELEASE</version>
 	</dependency>
-	<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter -->
-	<dependency>
-	    <groupId>org.springframework.boot</groupId>
-	    <artifactId>spring-boot-starter</artifactId>
-	    <version>1.5.9.RELEASE</version>
-	</dependency>
-   	<dependency>
-	    <groupId>org.springframework.boot</groupId>
-	    <artifactId>spring-boot-starter-integration</artifactId>
-	    <version>1.5.9.RELEASE</version>
-	</dependency>
-   	<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
+
 	<dependency>
 	    <groupId>org.springframework.boot</groupId>
 	    <artifactId>spring-boot-starter-web</artifactId>
@@ -122,12 +105,6 @@
          	</exclusion>
         </exclusions>
 	</dependency>
-	<!-- https://mvnrepository.com/artifact/org.springframework/spring-context -->
-	<dependency>
-	    <groupId>org.springframework</groupId>
-	    <artifactId>spring-context</artifactId>
-	    <version>4.3.14.RELEASE</version>
-	</dependency>
 
     <!-- END SPRING DEPENDENCIES -->
     
@@ -138,11 +115,14 @@
         <artifactId>javax.servlet-api</artifactId>
         <version>3.1.0</version>
     </dependency>
-    <dependency>
-        <groupId>javax.servlet.jsp</groupId>
-        <artifactId>javax.servlet.jsp-api</artifactId>
-        <version>2.3.2-b01</version>
-    </dependency>
+	<!-- https://mvnrepository.com/artifact/javax.servlet.jsp/javax.servlet.jsp-api -->
+	<dependency>
+	    <groupId>javax.servlet.jsp</groupId>
+	    <artifactId>javax.servlet.jsp-api</artifactId>
+	    <version>2.3.1</version>
+	    <scope>provided</scope>
+	</dependency>
+
     
     <!-- END SERVLET -->
   </dependencies>
