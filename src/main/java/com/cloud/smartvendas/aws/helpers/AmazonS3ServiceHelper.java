@@ -39,7 +39,7 @@ public class AmazonS3ServiceHelper{
 			return;
 		}
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("AKIAJBWWDLTBWUHNOXAA", "0Trs88dFqcdCP0YQsUoEjr+FXgM/a+l/36clVXLM");
+		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
 		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
@@ -62,7 +62,7 @@ public class AmazonS3ServiceHelper{
 	public boolean verificarArquivoS3(String nomeArquivo)
 		{
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("AKIAJBWWDLTBWUHNOXAA", "0Trs88dFqcdCP0YQsUoEjr+FXgM/a+l/36clVXLM");
+		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
 		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
@@ -92,7 +92,7 @@ public class AmazonS3ServiceHelper{
 	public void excluirArquivoS3(String nomeArquivo)
 			{
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("AKIAJBWWDLTBWUHNOXAA", "0Trs88dFqcdCP0YQsUoEjr+FXgM/a+l/36clVXLM");
+		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
 		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
@@ -114,7 +114,7 @@ public class AmazonS3ServiceHelper{
 	public S3Object recuperarArquivoS3(String nomeArquivo)
 	{
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("AKIAJBWWDLTBWUHNOXAA", "0Trs88dFqcdCP0YQsUoEjr+FXgM/a+l/36clVXLM");
+		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
 		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
@@ -139,7 +139,7 @@ public class AmazonS3ServiceHelper{
 	public ObjectListing listFilesS3()
 	{
 
-		BasicAWSCredentials creds = new BasicAWSCredentials("AKIAJBWWDLTBWUHNOXAA", "0Trs88dFqcdCP0YQsUoEjr+FXgM/a+l/36clVXLM");
+		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
 		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
@@ -165,7 +165,7 @@ public class AmazonS3ServiceHelper{
 	public void criarDiretorioS3(String nomeDiretorio)
 	{
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("AKIAJBWWDLTBWUHNOXAA", "0Trs88dFqcdCP0YQsUoEjr+FXgM/a+l/36clVXLM");
+		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
 		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
