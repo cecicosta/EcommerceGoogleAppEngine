@@ -4,6 +4,7 @@ package com.cloud.smartvendas.aws.helpers;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -11,27 +12,30 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.cloud.smartvendas.aws.helpers.AwsProperties.Properties;
 
 
 
 public class AmazonS3ServiceHelper{
 	
 	private String NomeBucketS3;
-	private String diretorioPathS3;
+	private String directoryPathS3;
 	
-	//TODO: Turn the secret key, the access key, the Endpoint and bucket region into configuration parameters
-	
-	public void enviarArquivoS3(String nomeArquivo, String pathArquivo)
-			{
-        enviarArquivoS3(nomeArquivo, new File(pathArquivo));
+	public AmazonS3ServiceHelper() {
+		this.NomeBucketS3 = Properties.s3Bucket.getValue();
+		this.directoryPathS3 = "";
 	}
-	
-	public void enviarArquivoS3(String nomeArquivo, File arquivo)
-			{
+
+	public void sendFile(String nomeArquivo, String pathArquivo, boolean makePublic) {
+        sendFile(nomeArquivo, new File(pathArquivo), makePublic);
+	}
+		
+	public void sendFile(String nomeArquivo, File arquivo, boolean makePublic) {
 		
 		if(arquivo == null || !arquivo.exists() || arquivo.length() <= 0){
 			System.out.println("Falha ao enviar arquivo para AWS S3. Arquivo inexistente: " + 
@@ -39,95 +43,86 @@ public class AmazonS3ServiceHelper{
 			return;
 		}
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
-		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
+		BasicAWSCredentials creds = new BasicAWSCredentials(Properties.accessKey.getValue(), Properties.secretKey.getValue());
+		EndpointConfiguration confg = new EndpointConfiguration(Properties.s3Url.getValue(), Properties.s3Region.getValue());
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
        
         try {
-        	System.out.println("Arquivo '" + this.getDiretorioPathDoAquivoS3(nomeArquivo) + "' enviado com sucesso para " + 
-            		(this.getDiretorioPathS3() != null && this.getDiretorioPathS3().length() > 0 ? this.getDiretorioPathS3() : " a raiz do Bucket " + 
-            	    		this.getNomeBucketS3()));
-            s3.putObject(this.getNomeBucketS3(),this.getDiretorioPathDoAquivoS3(nomeArquivo), arquivo);
+        	s3.putObject(getBucketName(),this.getFilePath(nomeArquivo), arquivo);
+            if(makePublic)
+            	s3.setObjectAcl(getBucketName(), getFilePath(nomeArquivo), CannedAccessControlList.PublicRead);
+            System.out.println("Arquivo '" + getFilePath(nomeArquivo) + "' enviado com sucesso para " + 
+					getDirectoryPath() + getBucketName());
         }
         catch (AmazonServiceException e) {
             System.out.println("Falha ao enviar arquivo para AWS S3. Path: " + 
-        		(this.getNomeBucketS3() + "/" + this.getDiretorioPathDoAquivoS3(nomeArquivo)));
-            System.out.println("[AWS] " + e.getErrorCode() + " - " + e.getErrorType() + " - " + e.getErrorMessage());
-            System.out.println("[AWS] " + e.getStackTrace().toString());
+        		(getBucketName() + "/" + this.getFilePath(nomeArquivo)));
+            System.out.println("[AWS] " + e.getMessage());
         }
-		
 	}
 	
-	public boolean verificarArquivoS3(String nomeArquivo)
-		{
+	public boolean fileExists(String fileName) {
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
-		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
+		BasicAWSCredentials creds = new BasicAWSCredentials(Properties.accessKey.getValue(), Properties.secretKey.getValue());
+		EndpointConfiguration confg = new EndpointConfiguration(Properties.s3Url.getValue(), Properties.s3Region.getValue());
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
         
-        System.out.println("Verificando existenia do arquivo '" + nomeArquivo + "' em " + this.getDiretorioPathS3());
+        System.out.println("Verificando existenia do arquivo '" + fileName + "' em " + this.getDirectoryPath());
         try {
-//        	boolean arquivoExiste = s3.doesObjectExist(this.getNomeBucketS3(), this.getDiretorioPathS3() + nomeArquivo);
-//        	System.out.println("Arquivo '" + nomeArquivo + "' existe? " + (arquivoExiste ? "Sim" : "Não"));
-        	
-        	ObjectMetadata omd = s3.getObjectMetadata(nomeArquivo, this.getDiretorioPathS3());
+        	ObjectMetadata omd = s3.getObjectMetadata(fileName, this.getDirectoryPath());
         	if(omd != null && omd.getContentLength() > 0){
         		return true;
         	}
-        	
-//        	return arquivoExiste;
-        }
-        catch (AmazonServiceException e) {
-            System.out.println("Falha ao verificar exist�ncia do arquivo no AWS S3. Path: " + 
-        		(this.getNomeBucketS3() + "/" + this.getDiretorioPathDoAquivoS3(nomeArquivo)));
+        }catch (AmazonServiceException e) {
+            System.out.println("Falha ao verificar existência do arquivo no AWS S3. Path: " + 
+        		(getBucketName() + "/" + getFilePath(fileName)));
             System.out.println("[AWS] " + e.getErrorCode() + " - " + e.getErrorType() + " - " + e.getErrorMessage());
             System.out.println("[AWS] " + e.getStackTrace().toString());
         }
-        
         return false;
 	}
 	
-	public void excluirArquivoS3(String nomeArquivo)
+	public void deleteFile(String nomeArquivo)
 			{
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
-		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
+		BasicAWSCredentials creds = new BasicAWSCredentials(Properties.accessKey.getValue(), Properties.secretKey.getValue());
+		EndpointConfiguration confg = new EndpointConfiguration(Properties.s3Url.getValue(), Properties.s3Region.getValue());
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
         
-        System.out.println("Excluindo arquivo '" + nomeArquivo + "' em " + this.getDiretorioPathS3());
+        System.out.println("Excluindo arquivo '" + nomeArquivo + "' em " + this.getDirectoryPath());
         try {
-            s3.deleteObject(this.getNomeBucketS3(), this.getDiretorioPathDoAquivoS3(nomeArquivo));
-            System.out.println("Arquivo '" +this.getDiretorioPathDoAquivoS3(nomeArquivo) + "' excluido com sucesso.");
+            s3.deleteObject(this.getBucketName(), this.getFilePath(nomeArquivo));
+            System.out.println("Arquivo '" +this.getFilePath(nomeArquivo) + "' excluido com sucesso.");
         }
         catch (AmazonServiceException e) {
             System.out.println("Falha ao excluir arquivo no AWS S3. Path: " + 
-        		(this.getNomeBucketS3() + "/" + this.getDiretorioPathDoAquivoS3(nomeArquivo)));
+        		(this.getBucketName() + "/" + this.getFilePath(nomeArquivo)));
             System.out.println("[AWS] " + e.getErrorCode() + " - " + e.getErrorType() + " - " + e.getErrorMessage());
             System.out.println("[AWS] " + e.getStackTrace().toString());
         }
 		
 	}
 	
-	public S3Object recuperarArquivoS3(String nomeArquivo)
+	public S3Object retrieveFile(String nomeArquivo)
 	{
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
-		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
+		BasicAWSCredentials creds = new BasicAWSCredentials(Properties.accessKey.getValue(), Properties.secretKey.getValue());
+		EndpointConfiguration confg = new EndpointConfiguration(Properties.s3Url.getValue(), Properties.s3Region.getValue());
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
         
-        System.out.println("Recuperando arquivo '" + nomeArquivo + "' em " + this.getDiretorioPathS3());
+        System.out.println("Recuperando arquivo '" + nomeArquivo + "' em " + this.getDirectoryPath());
         try {
-        	S3Object arquivo = s3.getObject(this.getNomeBucketS3(), this.getDiretorioPathDoAquivoS3(nomeArquivo));
+        	S3Object arquivo = s3.getObject(this.getBucketName(), this.getFilePath(nomeArquivo));
             System.out.println("Arquivo '" + nomeArquivo + "' recuperado com sucesso.");
             return arquivo;
         }
         catch (AmazonServiceException e) {
             System.out.println("Falha ao recuperar arquivo no AWS S3. Path: " + 
-        		(this.getNomeBucketS3() + "/" + this.getDiretorioPathS3() + nomeArquivo));
+        		(this.getBucketName() + "/" + this.getDirectoryPath() + nomeArquivo));
             System.out.println("[AWS] " + e.getErrorCode() + " - " + e.getErrorType() + " - " + e.getErrorMessage());
             System.out.println("[AWS] " + e.getStackTrace().toString());
         }
@@ -136,23 +131,22 @@ public class AmazonS3ServiceHelper{
 	}
 	
 	
-	public ObjectListing listFilesS3()
-	{
+	public ObjectListing listFiles() {
 
-		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
-		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
+		BasicAWSCredentials creds = new BasicAWSCredentials(Properties.accessKey.getValue(), Properties.secretKey.getValue());
+		EndpointConfiguration confg = new EndpointConfiguration(Properties.s3Url.getValue(), Properties.s3Region.getValue());
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
 		
-		System.out.println("Recuperando arquivos em " + this.getDiretorioPathS3());
+		System.out.println("Recuperando arquivos em " + this.getDirectoryPath());
 		try {
-			ObjectListing arquivos = s3.listObjects(this.getNomeBucketS3(), this.getDiretorioPathS3());
+			ObjectListing arquivos = s3.listObjects(this.getBucketName(), this.getDirectoryPath());
 		    System.out.println("Arquivos recuperados com sucesso.");
 		    return arquivos;
 		}
 		catch (AmazonServiceException e) {
 		    System.out.println("Falha ao recuperar arquivos no AWS S3. Path: " + 
-				(this.getNomeBucketS3() + "/" + this.getDiretorioPathS3()));
+				(this.getBucketName() + "/" + this.getDirectoryPath()));
 		    System.out.println("[AWS] " + e.getErrorCode() + " - " + e.getErrorType() + " - " + e.getErrorMessage());
 		    System.out.println("[AWS] " + e.getStackTrace().toString());
 		}
@@ -162,11 +156,10 @@ public class AmazonS3ServiceHelper{
 		
 	
 	@Deprecated
-	public void criarDiretorioS3(String nomeDiretorio)
-	{
+	public void createDirectory(String nomeDiretorio) {
 		
-		BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
-		EndpointConfiguration confg = new EndpointConfiguration("https://s3-sa-east-1.amazonaws.com", "sa-east-1");
+		BasicAWSCredentials creds = new BasicAWSCredentials(Properties.accessKey.getValue(), Properties.secretKey.getValue());
+		EndpointConfiguration confg = new EndpointConfiguration(Properties.s3Url.getValue(), Properties.s3Region.getValue());
 		
 		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
         
@@ -180,7 +173,7 @@ public class AmazonS3ServiceHelper{
 
             // Criando requisição: nome do diretório seguido de barra (padrão S3)
             PutObjectRequest putObjectRequest = new PutObjectRequest(
-        		this.getNomeBucketS3(),
+        		this.getBucketName(),
                 nomeDiretorio + "/", emptyContent, metadata);
 
             // Submentendo o pedido de criação do diretorio
@@ -194,27 +187,37 @@ public class AmazonS3ServiceHelper{
 		
 	}
 
-	public String getNomeBucketS3() {
+	public String getBucketName() {
 		return NomeBucketS3;
 	}
 
-	public void setNomeBucketS3(String nomeBucketS3) {
+	public void setBucketName(String nomeBucketS3) {
 		NomeBucketS3 = nomeBucketS3;
 	}
 
-	public String getDiretorioPathS3() {
-		return diretorioPathS3;
+	public String getDirectoryPath() {
+		return nullOrEmpty() ? "" : this.directoryPathS3;
+	}
+	
+	public void setDirectoryPath(String diretorioPathS3) {
+		this.directoryPathS3 = diretorioPathS3 + "/";
 	}
 
-	public void setDiretorioPathS3(String diretorioPathS3) {
-		this.diretorioPathS3 = diretorioPathS3 + "/";
+	public String getFilePath(String nomeArquivo) {
+		return (nullOrEmpty() ? "" : this.directoryPathS3) + nomeArquivo;
 	}
-	public String getURLArquivoS3(String nomeArquivo) {
-		return this.getNomeBucketS3()+(this.getDiretorioPathS3() != null && this.getDiretorioPathS3().length() > 0 ? this.getDiretorioPathS3() : "") + nomeArquivo;
+	
+	public URL getFileURL(String fileName){
+		BasicAWSCredentials creds = new BasicAWSCredentials(Properties.accessKey.getValue(), Properties.secretKey.getValue());
+		EndpointConfiguration confg = new EndpointConfiguration(Properties.s3Url.getValue(), Properties.s3Region.getValue());
+		
+		AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).withEndpointConfiguration(confg).build();
+		
+		return s3.getUrl(NomeBucketS3, getDirectoryPath() + fileName);
 	}
-	public String getDiretorioPathDoAquivoS3(String nomeArquivo) {
-		return (this.getDiretorioPathS3() != null && this.getDiretorioPathS3().length() > 0 ? this.getDiretorioPathS3() : "") + nomeArquivo;
+	
+	private boolean nullOrEmpty(){
+		return this.directoryPathS3 == null || this.directoryPathS3.length() == 0;
 	}
-
 }
 	

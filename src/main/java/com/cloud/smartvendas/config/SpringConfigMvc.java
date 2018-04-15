@@ -9,26 +9,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.hibernate4.HibernateTemplate;
 import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-import com.cloud.smartvendas.controllers.SamplePageController;
+import com.cloud.smartvendas.aws.helpers.AwsProperties;
+import com.cloud.smartvendas.controllers.LoginController;
+import com.cloud.smartvendas.entities.UserDAOImpl;
+import com.cloud.smartvendas.nosql.entities.Log;
 
 @EnableTransactionManagement
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackageClasses = {SamplePageController.class})
+@ComponentScan(basePackageClasses = {LoginController.class, UserDAOImpl.class, Log.class})
 public class SpringConfigMvc extends WebMvcConfigurerAdapter {
- 
-	@Autowired
-	private Environment env;
 	
     @Bean
     public InternalResourceViewResolver jspViewResolver() {
@@ -55,9 +55,9 @@ public class SpringConfigMvc extends WebMvcConfigurerAdapter {
     {
         DriverManagerDataSource ds = new DriverManagerDataSource();        
         ds.setDriverClassName("com.mysql.jdbc.Driver");
-        ds.setUrl("jdbc:mysql://ecommercedb.cm9rtkyb6udr.us-east-2.rds.amazonaws.com:3306/ecommerceDB");
-        ds.setUsername("ecommerceAdmin");
-        ds.setPassword("ecommercepassck0205");           
+        ds.setUrl(AwsProperties.Properties.rdsUrl.getValue());
+        ds.setUsername(AwsProperties.Properties.rdsUserName.getValue());
+        ds.setPassword(AwsProperties.Properties.rdsPassword.getValue());           
         return ds;
     }
     
@@ -78,6 +78,12 @@ public class SpringConfigMvc extends WebMvcConfigurerAdapter {
         return htm;
     }
     
+    @Bean(name = "multipartResolver")
+    public CommonsMultipartResolver multipartResolver() {
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+        multipartResolver.setMaxUploadSize(3*1024*1024);
+        return multipartResolver;
+    }
     
     @Bean
     @Autowired
