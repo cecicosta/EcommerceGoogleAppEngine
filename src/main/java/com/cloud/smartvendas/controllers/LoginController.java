@@ -1,19 +1,29 @@
 package com.cloud.smartvendas.controllers;
 
+import java.io.IOException;
+import java.rmi.server.Operation;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.cloud.smartvendas.aws.helpers.AmazonDynamoDBHelper;
 import com.cloud.smartvendas.entities.ProductDAO;
 import com.cloud.smartvendas.entities.User;
 import com.cloud.smartvendas.entities.UserDAO;
+import com.cloud.smartvendas.nosql.entities.Log;
+import com.cloud.smartvendas.nosql.entities.Log.AffectedType;
+import com.cloud.smartvendas.nosql.entities.Log.Operations;
 
 @Controller
 public class LoginController {
@@ -58,6 +68,29 @@ public class LoginController {
 			System.out.println("Authentication failed");
 		}
 		
+		return modelView;
+	}
+	
+	@RequestMapping(value = "/view_log", method = RequestMethod.GET)
+	public ModelAndView viewLog(
+			@CookieValue(value = "authentication", defaultValue = "") String authentication,
+			Model model) {
+		
+		ModelAndView modelView = new ModelAndView("views/index");
+
+		if(authentication.compareTo("") == 0){
+			SetMessagePage(modelView, "", "Disponível apenas para usuários autenticados.");
+			return modelView;
+		}
+		Log log = new Log(authentication, Operations.list, AffectedType.user, "");
+		AmazonDynamoDBHelper.updateItem(log);
+		List<Log> logs = null;
+		logs = AmazonDynamoDBHelper.findRange(Log.class, log.getTime(), 100, false);
+		if(logs == null)
+			logs = new ArrayList<Log>();
+		
+		model.addAttribute("logList", logs);
+		modelView.addObject("mainPanel", "./list_log.jsp");
 		return modelView;
 	}
 	
