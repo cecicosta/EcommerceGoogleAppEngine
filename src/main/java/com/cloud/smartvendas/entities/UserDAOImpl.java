@@ -22,15 +22,13 @@ public class UserDAOImpl implements UserDAO {
 	public void setSessionFactory(SessionFactory sf){
 		this.sessionFactory = sf;
 	}
-
-	@Override
+	
 	public void addUser(User p) {
 		Session session = this.sessionFactory.getCurrentSession();
 		session.persist(p);
 		logger.info("User saved successfully, User Details="+p);
 	}
 
-	@Override
 	public void updateUser(User p) {
 		Session session = this.sessionFactory.getCurrentSession();
 		session.merge(p);
@@ -38,7 +36,6 @@ public class UserDAOImpl implements UserDAO {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public List<User> listUsers() {
 		Session session = this.sessionFactory.getCurrentSession();
 		List<User> UsersList = session.createQuery("from User").list();
@@ -48,7 +45,6 @@ public class UserDAOImpl implements UserDAO {
 		return UsersList;
 	}
 
-	@Override
 	public User getUserById(String login) {
 		Session session = this.sessionFactory.getCurrentSession();		
 		User p = null;
@@ -62,7 +58,6 @@ public class UserDAOImpl implements UserDAO {
 		return p;
 	}
 
-	@Override
 	public void removeUser(String login) {
 		Session session = this.sessionFactory.getCurrentSession();
 		User p = (User) session.load(User.class, login);
