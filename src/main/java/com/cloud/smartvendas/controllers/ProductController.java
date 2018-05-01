@@ -39,6 +39,7 @@ import com.cloud.smartvendas.nosql.entities.Log.AffectedType;
 import com.cloud.smartvendas.nosql.entities.Log.Operations;
 
 @Controller
+@RequestMapping("/ecommerce")
 public class ProductController {
 
 	@Autowired

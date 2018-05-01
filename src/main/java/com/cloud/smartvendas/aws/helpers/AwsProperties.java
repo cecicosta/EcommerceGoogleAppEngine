@@ -43,7 +43,7 @@ public class AwsProperties {
 	private void parseFile() {		
 		BufferedReader br = null;		
 		try {
-			br = new BufferedReader(new FileReader("awsproperties.cfg"));
+			br = new BufferedReader(new FileReader(System.getProperty("user.home") + "/awsproperties.cfg"));
 		    String line = br.readLine();
 
 		    while (line != null) {

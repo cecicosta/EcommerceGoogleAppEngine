@@ -1,5 +1,6 @@
 package com.cloud.smartvendas.config;
 
+import java.io.File;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -56,6 +57,7 @@ public class SpringConfigMvc extends WebMvcConfigurerAdapter {
         DriverManagerDataSource ds = new DriverManagerDataSource();        
         ds.setDriverClassName("com.mysql.jdbc.Driver");
         ds.setUrl(AwsProperties.Properties.rdsUrl.getValue());
+        
         ds.setUsername(AwsProperties.Properties.rdsUserName.getValue());
         ds.setPassword(AwsProperties.Properties.rdsPassword.getValue());           
         return ds;
