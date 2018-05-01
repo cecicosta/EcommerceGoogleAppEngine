@@ -13,15 +13,17 @@
 	<properties>
 		<appengine.app.version>1</appengine.app.version>
 		<appengine.target.version>1.9.0</appengine.target.version>
+		<appengine-maven-plugin-version>1.3.1</appengine-maven-plugin-version>
+		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.framework.version>4.0.0.RELEASE</spring.framework.version>
 	    <maven.compiler.source>1.8</maven.compiler.source>
     	<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
-
-
   <build>
+  
+  	<outputDirectory>target/${project.artifactId}/WEB-INF/classes</outputDirectory> 
 	<finalName>ecommerce</finalName>
 	<plugins>
 		<plugin>
@@ -36,17 +38,17 @@
 				<webResources>
 					<!-- in order to interpolate version from pom into appengine-web.xml -->
 					<resource>
-						<directory>${basedir}/src/main/webapp/WEB-INF</directory>
+						<directory>${basedir}/WebContent/WEB-INF</directory>
 						<filtering>true</filtering>
 						<targetPath>WEB-INF</targetPath>
 					</resource>
 				</webResources>
 			</configuration>
 		</plugin>
-		<plugin>
-		   <groupId>com.google.appengine</groupId>
-		   <artifactId>appengine-maven-plugin</artifactId>
-		   <version>1.9.63</version>
+        <plugin>
+	        <groupId>com.google.cloud.tools</groupId>
+	        <artifactId>appengine-maven-plugin</artifactId>
+	        <version>${appengine-maven-plugin-version}</version>
 		</plugin>
 	</plugins>
   </build>
