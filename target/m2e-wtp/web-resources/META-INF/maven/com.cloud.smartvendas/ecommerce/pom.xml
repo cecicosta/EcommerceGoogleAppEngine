@@ -54,12 +54,7 @@
 		      <deploy.stopPreviousVersion>true</deploy.stopPreviousVersion>          
 		   </configuration>
 		</plugin>
-		
-		 <plugin>
-	        <groupId>com.google.appengine</groupId>
-	        <artifactId>appengine-maven-plugin</artifactId>
-	        <version>1.9.0</version>
-	      </plugin>
+
 	
 	</plugins>
   </build>

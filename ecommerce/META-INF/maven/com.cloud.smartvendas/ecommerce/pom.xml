@@ -54,7 +54,7 @@
 		      <deploy.stopPreviousVersion>true</deploy.stopPreviousVersion>          
 		   </configuration>
 		</plugin>
-	
+
 	
 	</plugins>
   </build>
