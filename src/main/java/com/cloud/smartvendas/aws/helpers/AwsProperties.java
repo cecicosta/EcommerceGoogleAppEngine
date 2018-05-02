@@ -2,10 +2,17 @@ package com.cloud.smartvendas.aws.helpers;
 
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
+import com.amazonaws.auth.AWS3Signer;
 
 public class AwsProperties {
 	public enum Properties{
@@ -43,7 +50,10 @@ public class AwsProperties {
 	private void parseFile() {		
 		BufferedReader br = null;		
 		try {
-			br = new BufferedReader(new FileReader(System.getProperty("user.home") + "/awsproperties.cfg"));
+			Resource resource = new ClassPathResource("awsproperties.cfg");
+			File file = resource.getFile();
+						
+			br = new BufferedReader(new FileReader(file));
 		    String line = br.readLine();
 
 		    while (line != null) {
