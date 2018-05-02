@@ -23,8 +23,7 @@
 
   <build>
   
-  	<outputDirectory>target/${project.artifactId}/WEB-INF/classes</outputDirectory> 
-	<finalName>ecommerce</finalName>
+  	<finalName>ecommerce</finalName>
 	<plugins>
 		<plugin>
 		    <groupId>org.apache.maven.plugins</groupId>
@@ -45,11 +44,23 @@
 				</webResources>
 			</configuration>
 		</plugin>
+        
         <plugin>
 	        <groupId>com.google.cloud.tools</groupId>
 	        <artifactId>appengine-maven-plugin</artifactId>
 	        <version>${appengine-maven-plugin-version}</version>
+         	<configuration>
+		      <deploy.promote>true</deploy.promote>
+		      <deploy.stopPreviousVersion>true</deploy.stopPreviousVersion>          
+		   </configuration>
 		</plugin>
+		
+		 <plugin>
+	        <groupId>com.google.appengine</groupId>
+	        <artifactId>appengine-maven-plugin</artifactId>
+	        <version>1.9.0</version>
+	      </plugin>
+	
 	</plugins>
   </build>
   

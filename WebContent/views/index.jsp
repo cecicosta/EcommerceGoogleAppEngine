@@ -1,3 +1,5 @@
+<%@ page import="java.util.List" %>
+<%@ page import="com.google.appengine.api.datastore.Entity" %>
 <%@page language="java" contentType="text/html; charset=ISO-8859-1"%>
 
 <html>

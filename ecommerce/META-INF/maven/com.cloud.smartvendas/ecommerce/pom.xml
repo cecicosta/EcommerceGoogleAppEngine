@@ -1,0 +1,252 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.cloud.smartvendas</groupId>
+  <artifactId>ecommerce</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>war</packaging>
+
+  <name>ecommerce</name>
+  <url>http://maven.apache.org</url>
+
+	<properties>
+		<appengine.app.version>1</appengine.app.version>
+		<appengine.target.version>1.9.0</appengine.target.version>
+		<appengine-maven-plugin-version>1.3.1</appengine-maven-plugin-version>
+		
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<spring.framework.version>4.0.0.RELEASE</spring.framework.version>
+	    <maven.compiler.source>1.8</maven.compiler.source>
+    	<maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
+
+  <build>
+  
+  	<finalName>ecommerce</finalName>
+	<plugins>
+		<plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-war-plugin</artifactId>
+		    <version>2.3</version>
+		    <configuration>
+		        <source>1.8</source>
+          		<target>1.8</target>
+		        <failOnMissingWebXml>false</failOnMissingWebXml>
+				<archiveClasses>true</archiveClasses>
+				<webResources>
+					<!-- in order to interpolate version from pom into appengine-web.xml -->
+					<resource>
+						<directory>${basedir}/WebContent/WEB-INF</directory>
+						<filtering>true</filtering>
+						<targetPath>WEB-INF</targetPath>
+					</resource>
+				</webResources>
+			</configuration>
+		</plugin>
+        
+        <plugin>
+	        <groupId>com.google.cloud.tools</groupId>
+	        <artifactId>appengine-maven-plugin</artifactId>
+	        <version>${appengine-maven-plugin-version}</version>
+         	<configuration>
+		      <deploy.promote>true</deploy.promote>
+		      <deploy.stopPreviousVersion>true</deploy.stopPreviousVersion>          
+		   </configuration>
+		</plugin>
+	
+	
+	</plugins>
+  </build>
+  
+
+  <dependencies>
+  
+ 	<!-- GOOGLE APP ENGINE -->
+	<dependency>
+		<groupId>com.google.appengine</groupId>
+		<artifactId>appengine-api-1.0-sdk</artifactId>
+		<version>${appengine.target.version}</version>
+	</dependency>
+	
+	<!-- Test Dependencies -->
+	<dependency>
+		<groupId>com.google.appengine</groupId>
+		<artifactId>appengine-testing</artifactId>
+		<version>${appengine.target.version}</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>com.google.appengine</groupId>
+		<artifactId>appengine-api-stubs</artifactId>
+		<version>${appengine.target.version}</version>
+		<scope>test</scope>
+	</dependency>
+	
+	<dependency>
+		<groupId>jstl</groupId>
+		<artifactId>jstl</artifactId>
+		<version>1.2</version>
+	</dependency>
+  
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+	    <groupId>org.codehaus.jackson</groupId>
+	    <artifactId>jackson-mapper-asl</artifactId>
+	    <version>1.9.13</version>
+	</dependency>
+	
+    <!-- AWS DEPENDENCIES -->
+    
+    <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-rds -->
+	<dependency>
+	    <groupId>com.amazonaws</groupId>
+	    <artifactId>aws-java-sdk-rds</artifactId>
+	    <version>1.11.301</version>
+	</dependency>
+    <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-ses -->
+	<dependency>
+	    <groupId>com.amazonaws</groupId>
+	    <artifactId>aws-java-sdk-ses</artifactId>
+	    <version>1.11.301</version>
+	</dependency>
+    <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3 -->
+	<dependency>
+	    <groupId>com.amazonaws</groupId>
+	    <artifactId>aws-java-sdk-s3</artifactId>
+	    <version>1.11.301</version>
+	</dependency>
+    <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-dynamodb -->
+	<dependency>
+	    <groupId>com.amazonaws</groupId>
+	    <artifactId>aws-java-sdk-dynamodb</artifactId>
+	    <version>1.11.301</version>
+	</dependency>
+    
+    <!-- END AWS DEPENDENCIES -->
+    
+  	<!-- SPRING DEPENDENCIES -->
+    
+	<dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>4.3.14.RELEASE</version>
+    </dependency>
+
+	<!-- https://mvnrepository.com/artifact/org.springframework/spring-web -->
+	<dependency>
+	    <groupId>org.springframework</groupId>
+	    <artifactId>spring-web</artifactId>
+	    <version>4.3.14.RELEASE</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/org.springframework/spring-webmvc -->
+	<dependency>
+	    <groupId>org.springframework</groupId>
+	    <artifactId>spring-webmvc</artifactId>
+	    <version>4.3.14.RELEASE</version>
+	</dependency>
+
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-web</artifactId>
+	    <version>1.5.9.RELEASE</version>
+	    <exclusions>
+            <exclusion>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-tomcat</artifactId>
+         	</exclusion>
+        </exclusions>
+	</dependency>
+
+	<!-- https://mvnrepository.com/artifact/org.springframework/spring-tx -->
+	<dependency>
+	    <groupId>org.springframework</groupId>
+	    <artifactId>spring-tx</artifactId>
+	    <version>4.3.14.RELEASE</version>
+	</dependency>
+	
+	<!-- https://mvnrepository.com/artifact/org.springframework/spring-orm -->
+	<dependency>
+	    <groupId>org.springframework</groupId>
+	    <artifactId>spring-orm</artifactId>
+	    <version>4.3.14.RELEASE</version>
+	</dependency>
+		
+    <!-- END SPRING DEPENDENCIES -->
+    
+    <!-- HIBERNATE DEPENDENCIES -->
+    
+    <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+	<dependency>
+	    <groupId>org.hibernate</groupId>
+	    <artifactId>hibernate-core</artifactId>
+	    <version>4.3.10.Final</version>
+	</dependency>
+			    
+	<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-entitymanager -->
+	<dependency>
+	    <groupId>org.hibernate</groupId>
+	    <artifactId>hibernate-entitymanager</artifactId>
+	    <version>4.3.10.Final</version>
+	</dependency>
+
+    <!-- END HIBERNATE DEPENDENCIES -->
+    
+    <!-- SERVLET -->
+    
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+    </dependency>
+	<!-- https://mvnrepository.com/artifact/javax.servlet.jsp/javax.servlet.jsp-api -->
+	<dependency>
+	    <groupId>javax.servlet.jsp</groupId>
+	    <artifactId>javax.servlet.jsp-api</artifactId>
+	    <version>2.3.1</version>
+	    <scope>provided</scope>
+	</dependency>
+
+    <!-- END SERVLET -->
+    
+    <!-- MULTPART FILE UPLOAD DEPENDENCIES -->
+    
+    <!-- Apache Commons FileUpload --> 
+	<dependency>
+		<groupId>commons-fileupload</groupId>
+		<artifactId>commons-fileupload</artifactId>
+		<version>1.3.1</version>
+	</dependency>
+
+	<!-- Apache Commons IO --> 
+	<dependency>
+		<groupId>commons-io</groupId>
+		<artifactId>commons-io</artifactId>
+		<version>2.4</version>
+	</dependency>
+    
+    <!-- END MULTIPART FILE UPLOAD -->
+    
+    <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+	<dependency>
+	    <groupId>mysql</groupId>
+	    <artifactId>mysql-connector-java</artifactId>
+	    <version>5.1.6</version>
+	</dependency>
+	    
+
+	<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+	<dependency>
+	    <groupId>com.fasterxml.jackson.core</groupId>
+	    <artifactId>jackson-databind</artifactId>
+	    <version>2.8.5</version>
+	</dependency>
+
+  </dependencies>
+</project>
