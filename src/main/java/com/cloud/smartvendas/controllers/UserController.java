@@ -2,10 +2,11 @@ package com.cloud.smartvendas.controllers;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,12 +29,13 @@ import org.springframework.web.servlet.ModelAndView;
 import com.cloud.smartvendas.aws.helpers.AmazonDynamoDBHelper;
 import com.cloud.smartvendas.aws.helpers.AmazonS3ServiceHelper;
 import com.cloud.smartvendas.aws.helpers.AmazonSESServiceHelper;
-import com.cloud.smartvendas.entities.ProductDAO;
 import com.cloud.smartvendas.entities.User;
 import com.cloud.smartvendas.entities.UserDAO;
+import com.cloud.smartvendas.gae.helpers.HttpRequestUtils;
 import com.cloud.smartvendas.nosql.entities.Log;
 import com.cloud.smartvendas.nosql.entities.Log.AffectedType;
 import com.cloud.smartvendas.nosql.entities.Log.Operations;
+
 
 @Controller
 @RequestMapping("/ecommerce")
@@ -43,6 +45,8 @@ public class UserController {
 	UserDAO userDAO;
 	
 	private String deletedUserMessage = "Seu usuário foi deletado do sistema SmartVendas. Se deseja saber o motivo, responda este email.";
+
+	private String bucket = "ecommerce-ck0205-storage-00";
 
 	@RequestMapping(value = "/user_menu", method = RequestMethod.GET)
 	public ModelAndView userMenuRedirect(
@@ -78,7 +82,8 @@ public class UserController {
 			@CookieValue(value = "authentication", defaultValue = "") String authentication,
 			@ModelAttribute("user") User user, 
 			HttpServletRequest request, 
-			BindingResult result) throws IllegalStateException, IOException {
+			HttpServletResponse response, 
+			BindingResult result) throws Exception {
 		
 		ModelAndView modelView = new ModelAndView("views/index");		
 		if(authentication.compareTo("") == 0){
@@ -93,9 +98,25 @@ public class UserController {
 		
 		MultipartFile photoFile = user.getPhotoFile();
 		if(photoFile != null){
-			AmazonS3ServiceHelper s3 = new AmazonS3ServiceHelper();
-			s3.sendFile(photoFile.getOriginalFilename(), multipartToFile(photoFile), true);
-			user.setPhoto(s3.getFileURL(photoFile.getOriginalFilename()).toString());
+//			AmazonS3ServiceHelper s3 = new AmazonS3ServiceHelper();
+//			s3.sendFile(photoFile.getOriginalFilename(), multipartToFile(photoFile), true);
+//			user.setPhoto(s3.getFileURL(photoFile.getOriginalFilename()).toString());
+		
+
+			Map<String, String> properties = new HashMap<String, String>();
+			properties.put("Content-Type", "multipart/form-data");
+			
+			String responseBody = "";
+			try {
+				responseBody = HttpRequestUtils.httpPOST( "/gcs/" + bucket + "/" + photoFile.getOriginalFilename(), properties, photoFile.getBytes());
+			} catch (IOException e) {
+				response.sendError(HttpRequestUtils.lastRequestStatus, e.getMessage());
+				//return e.getMessage();
+			}
+			if(HttpRequestUtils.lastRequestStatus != HttpURLConnection.HTTP_OK){
+				response.sendError(HttpRequestUtils.lastRequestStatus, responseBody);
+				//return responseBody;
+			}
 		}
 		
 		if(emptyOrNull(request.getParameter("update"))){
