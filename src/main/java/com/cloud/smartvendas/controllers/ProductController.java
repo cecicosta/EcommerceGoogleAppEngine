@@ -26,17 +26,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.amazonaws.util.StringUtils;
-import com.cloud.smartvendas.aws.helpers.AmazonDynamoDBHelper;
-import com.cloud.smartvendas.aws.helpers.AmazonS3ServiceHelper;
-import com.cloud.smartvendas.aws.helpers.AmazonSESServiceHelper;
+import com.cloud.smartvendas.aws.helpers.CloudStorageHelper;
 import com.cloud.smartvendas.entities.Product;
 import com.cloud.smartvendas.entities.ProductDAO;
-import com.cloud.smartvendas.entities.User;
 import com.cloud.smartvendas.entities.UserDAO;
-import com.cloud.smartvendas.nosql.entities.Log;
-import com.cloud.smartvendas.nosql.entities.Log.AffectedType;
-import com.cloud.smartvendas.nosql.entities.Log.Operations;
 
 @Controller
 @RequestMapping("/ecommerce")
@@ -48,7 +41,7 @@ public class ProductController {
 	@Autowired
 	UserDAO userDao;
 
-	private String systemEmail = "cecier.costa@gmail.com";
+	private String bucket = "ecommerce-ck0205-storage-00";
 
 	@RequestMapping(value = "/product_menu", method = RequestMethod.GET)
 	public ModelAndView productMenuRedirect(
@@ -67,7 +60,6 @@ public class ProductController {
 		String parameter = request.getParameter("action");
 		if(parameter.compareTo("list_product") == 0 || parameter.compareTo("ecommerce") == 0){
 			model.addAttribute("productList", productDao.listProducts());
-			AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.list, AffectedType.product, ""));
 		}else if(parameter.compareTo("purchase_products") == 0){
 			ArrayList<Product> selectedProducts = selectProductsToPurchase(shoppingCart);
 			model.addAttribute("productList", selectedProducts);
@@ -101,23 +93,21 @@ public class ProductController {
 		
 		MultipartFile photoFile = product.getPhotoFile();
 		if(photoFile != null){
-			AmazonS3ServiceHelper s3 = new AmazonS3ServiceHelper();
-			s3.sendFile(photoFile.getOriginalFilename(), multipartToFile(photoFile), true);
-			product.setPhoto(s3.getFileURL(photoFile.getOriginalFilename()).toString());
+			CloudStorageHelper helper = new CloudStorageHelper();
+			String url = helper.uploadFile(photoFile.getInputStream(), bucket, photoFile.getOriginalFilename());
+			product.setPhoto(url);
 		}
 		
 		if(emptyOrNull(request.getParameter("update"))){
 			try{
 				productDao.addProduct(product);
 				SetMessagePage(modelView, "", "Produto adicionado com sucesso!");
-				AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.insert, AffectedType.product, product.getName()));
 			}catch(Exception e){
 				SetMessagePage(modelView, "", "Erro ao adicionar produto. Verifique se o produto já existe.");
 			}
 		}else{
 			productDao.updateProduct(product);
 			SetMessagePage(modelView, "", "Produto atualizado com sucesso!");
-			AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.alter, AffectedType.product, product.getName()));
 		}
 				
 		return modelView;
@@ -148,7 +138,6 @@ public class ProductController {
 			try{
 				productDao.removeProduct(product.getName());
 				SetMessagePage(modelView, "", "Produto " + product.getName() + " foi removido do sistema SmartVendas" );
-				AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.delete, AffectedType.product, product.getName()));
 			}catch(Exception e){
 				SetMessagePage(modelView, "", "Erro ao remover produto.");
 			}
@@ -182,7 +171,6 @@ public class ProductController {
 		
 		Stream<Product> users = productDao.listProducts().stream().filter(x -> x.getName().contains(product.getName()));
 		model.addAttribute("productList", users.toArray());
-		AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.search, AffectedType.product, ""));
 		modelView.addObject("mainPanel", "./list_product.jsp");
 		return modelView;
 	}
@@ -303,17 +291,6 @@ public class ProductController {
 			productDao.updateProduct(p);
 		}
 		
-		
-		User user = userDao.getUserById(authentication);
-		if(user != null){
-			AmazonSESServiceHelper.SendEmail(
-					user.getEmail(), 
-					systemEmail , 
-					"Compra Finalizada", 
-					"Você adquiriu os seguintes produtos: " + shoppingCart, 
-					"");
-		}
-
 		Cookie cookie = new Cookie("shopping_cart", "");
 		response.addCookie(cookie);
 		cookie.setMaxAge(600);

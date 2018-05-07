@@ -26,15 +26,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.cloud.smartvendas.aws.helpers.AmazonDynamoDBHelper;
-import com.cloud.smartvendas.aws.helpers.AmazonS3ServiceHelper;
-import com.cloud.smartvendas.aws.helpers.AmazonSESServiceHelper;
+import com.cloud.smartvendas.aws.helpers.CloudStorageHelper;
 import com.cloud.smartvendas.entities.User;
 import com.cloud.smartvendas.entities.UserDAO;
 import com.cloud.smartvendas.gae.helpers.HttpRequestUtils;
-import com.cloud.smartvendas.nosql.entities.Log;
-import com.cloud.smartvendas.nosql.entities.Log.AffectedType;
-import com.cloud.smartvendas.nosql.entities.Log.Operations;
 
 
 @Controller
@@ -44,8 +39,6 @@ public class UserController {
 	@Autowired
 	UserDAO userDAO;
 	
-	private String deletedUserMessage = "Seu usuário foi deletado do sistema SmartVendas. Se deseja saber o motivo, responda este email.";
-
 	private String bucket = "ecommerce-ck0205-storage-00";
 
 	@RequestMapping(value = "/user_menu", method = RequestMethod.GET)
@@ -63,7 +56,6 @@ public class UserController {
 
 		if(request.getParameter("action").compareTo("list_user") == 0){
 			model.addAttribute("userList", userDAO.listUsers());
-			AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.list, AffectedType.user, ""));
 		}
 	
 		model.addAttribute("user", new User());
@@ -98,41 +90,20 @@ public class UserController {
 		
 		MultipartFile photoFile = user.getPhotoFile();
 		if(photoFile != null){
-//			AmazonS3ServiceHelper s3 = new AmazonS3ServiceHelper();
-//			s3.sendFile(photoFile.getOriginalFilename(), multipartToFile(photoFile), true);
-//			user.setPhoto(s3.getFileURL(photoFile.getOriginalFilename()).toString());
-		
-
-			Map<String, String> properties = new HashMap<String, String>();
-			properties.put("Content-Type", "multipart/form-data");
-			
-			String responseBody = "";
-			try {
-				responseBody = HttpRequestUtils.httpPOST( "/gcs/" + bucket + "/" + photoFile.getOriginalFilename(), properties, photoFile.getBytes());
-			} catch (IOException e) {
-				response.sendError(HttpRequestUtils.lastRequestStatus, e.getMessage());
-				//return e.getMessage();
-			}
-			if(HttpRequestUtils.lastRequestStatus != HttpURLConnection.HTTP_OK){
-				response.sendError(HttpRequestUtils.lastRequestStatus, responseBody);
-				//return responseBody;
-			}
+			CloudStorageHelper helper = new CloudStorageHelper();
+			String url = helper.uploadFile(photoFile.getInputStream(), bucket, photoFile.getOriginalFilename());
+			user.setPhoto(url);
 		}
 		
 		if(emptyOrNull(request.getParameter("update"))){
 			try{
 				userDAO.addUser(user);
-				if(!emptyOrNull(user.getEmail()))
-					AmazonSESServiceHelper.SendEmailVerification(user.getEmail());
-				SetMessagePage(modelView, user.getName(), "Usuário adicionado com sucesso! <br />Um email de confirmação foi enviado para " + user.getEmail());
-				AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.insert, AffectedType.user, user.getLogin()));
 			}catch(Exception e){
 				SetMessagePage(modelView, "", "Erro ao adicionar usuário. Login informado já existe.");
 			}
 		}else{
 			userDAO.updateUser(user);
 			SetMessagePage(modelView, user.getName(), "Usuário atualizado com sucesso!");
-			AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.alter, AffectedType.user, user.getLogin()));
 		}
 				
 		return modelView;
@@ -162,11 +133,6 @@ public class UserController {
 		if(!emptyOrNull(user.getLogin()) && user.getLogin().compareTo(authentication) != 0){
 			try{
 				userDAO.removeUser(user.getLogin());
-				User authUser = userDAO.getUserById(authentication);
-				if(!emptyOrNull(user.getEmail()))
-					AmazonSESServiceHelper.SendEmail(user.getEmail(), authUser.getEmail(), "Usuário Deletado", "", deletedUserMessage );
-				SetMessagePage(modelView, "", "Usuário " + user.getName() + " foi removido do sistema SmartVendas" );
-				AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.delete, AffectedType.user, user.getLogin()));
 			}catch(Exception e){
 				SetMessagePage(modelView, "", "Erro ao remover usuário.");
 			}
@@ -201,7 +167,6 @@ public class UserController {
 		Stream<User> users = userDAO.listUsers().stream().filter(x -> x.getName().contains(user.getName()));
 		model.addAttribute("userList", users.toArray());
 	
-		AmazonDynamoDBHelper.updateItem(new Log(authentication, Operations.search, AffectedType.user, ""));
 		modelView.addObject("mainPanel", "./list_user.jsp");
 		return modelView;
 	}
