@@ -18,7 +18,7 @@ Study implementing a simple ecommerce with Google App Engine.
 * List all existing products;
 
 
-## The following Technologies from AWS were used in this project:
+## The following Technologies from GAE and AWS were used in this project:
 
 * Google App Engine to run the application
 * Cloud SQL for user and products database
